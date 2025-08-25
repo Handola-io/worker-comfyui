@@ -13,6 +13,7 @@ import uuid
 import tempfile
 import socket
 import traceback
+import mimetypes
 
 # Time to wait between API check attempts in milliseconds
 COMFY_API_AVAILABLE_INTERVAL_MS = 50
@@ -38,6 +39,9 @@ COMFY_HOST = "127.0.0.1:8188"
 # Enforce a clean state after each job is done
 # see https://docs.runpod.io/docs/handler-additional-controls#refresh-worker
 REFRESH_WORKER = os.environ.get("REFRESH_WORKER", "false").lower() == "true"
+
+VIDEO_FETCH_TIMEOUT_S = int(os.environ.get("VIDEO_FETCH_TIMEOUT_S", "300"))
+MAX_BASE64_VIDEO_MB = int(os.environ.get("MAX_BASE64_VIDEO_MB", "8"))  # fallback if S3 not configured
 
 # ---------------------------------------------------------------------------
 # Helper: quick reachability probe of ComfyUI HTTP endpoint (port 8188)
@@ -474,6 +478,26 @@ def get_image_data(filename, subfolder, image_type):
         )
         return None
 
+def download_output_to_tempfile(filename, subfolder, file_type, timeout_s=VIDEO_FETCH_TIMEOUT_S):
+    """
+    Streams an output file (image or video) from /view -> temp file.
+    Returns the temp file path or None on failure.
+    """
+    params = urllib.parse.urlencode({"filename": filename, "subfolder": subfolder, "type": file_type})
+    url = f"http://{COMFY_HOST}/view?{params}"
+
+    file_ext = os.path.splitext(filename)[1] or ""
+    try:
+        with tempfile.NamedTemporaryFile(suffix=file_ext, delete=False) as tmp:
+            with requests.get(url, stream=True, timeout=timeout_s) as r:
+                r.raise_for_status()
+                for chunk in r.iter_content(chunk_size=1024 * 1024):
+                    if chunk:
+                        tmp.write(chunk)
+            return tmp.name
+    except Exception as e:
+        print(f"worker-comfyui - Error streaming {filename} from /view: {e}")
+        return None
 
 def handler(job):
     """
@@ -521,6 +545,7 @@ def handler(job):
     client_id = str(uuid.uuid4())
     prompt_id = None
     output_data = []
+    video_data = []
     errors = []
 
     try:
@@ -733,8 +758,58 @@ def handler(job):
                         error_msg = f"Failed to fetch image data for {filename} from /view endpoint."
                         errors.append(error_msg)
 
+            if "videos" in node_output:
+                print(f"worker-comfyui - Node {node_id} contains {len(node_output['videos'])} video(s)")
+                for vid in node_output["videos"]:
+                    filename = vid.get("filename")
+                    subfolder = vid.get("subfolder", "")
+                    file_type = vid.get("type")
+                    if file_type == "temp":
+                        print(f"worker-comfyui - Skipping video {filename} because type is 'temp'")
+                        continue
+                    if not filename:
+                        warn_msg = f"Skipping video in node {node_id} due to missing filename: {vid}"
+                        print(f"worker-comfyui - {warn_msg}")
+                        errors.append(warn_msg)
+                        continue
+
+                    # stream to a temp file to avoid loading large blobs into memory
+                    temp_path = download_output_to_tempfile(filename, subfolder, file_type)
+                    if not temp_path or not os.path.exists(temp_path):
+                        errors.append(f"Failed to download video {filename} from /view.")
+                        continue
+
+                    try:
+                        # If S3 is configured, upload via rp_upload (re-uses existing env vars & naming)
+                        if os.environ.get("BUCKET_ENDPOINT_URL"):
+                            print(f"worker-comfyui - Uploading video {filename} to S3...")
+                            # rp_upload works fine with any file type; key & content-type are inferred by extension
+                            s3_url = rp_upload.upload_image(job_id, temp_path)
+                            print(f"worker-comfyui - Uploaded {filename} to S3: {s3_url}")
+                            video_data.append({"filename": filename, "type": "s3_url", "data": s3_url})
+                        else:
+                            # fallback to base64 for small clips only (avoid huge responses)
+                            size_mb = os.path.getsize(temp_path) / (1024 * 1024)
+                            if size_mb <= MAX_BASE64_VIDEO_MB:
+                                with open(temp_path, "rb") as f:
+                                    b64 = base64.b64encode(f.read()).decode("utf-8")
+                                video_data.append({"filename": filename, "type": "base64", "data": b64})
+                                print(f"worker-comfyui - Encoded {filename} as base64 ({size_mb:.2f} MB)")
+                            else:
+                                msg = (f"Video {filename} is {size_mb:.1f} MB; "
+                                    f"enable S3 to receive large videos (set BUCKET_* env vars).")
+                                print(f"worker-comfyui - {msg}")
+                                errors.append(msg)
+                    except Exception as e:
+                        errors.append(f"Error handling video {filename}: {e}")
+                    finally:
+                        try:
+                            os.remove(temp_path)
+                        except Exception:
+                            pass
+                    
             # Check for other output types
-            other_keys = [k for k in node_output.keys() if k != "images"]
+            other_keys = [k for k in node_output.keys() if k not in ("images", "videos")]
             if other_keys:
                 warn_msg = (
                     f"Node {node_id} produced unhandled output keys: {other_keys}."
@@ -769,7 +844,8 @@ def handler(job):
 
     if output_data:
         final_result["images"] = output_data
-
+    if video_data:
+        final_result["videos"] = video_data
     if errors:
         final_result["errors"] = errors
         print(f"worker-comfyui - Job completed with errors/warnings: {errors}")
