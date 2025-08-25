@@ -36,7 +36,7 @@ variable "HUGGINGFACE_ACCESS_TOKEN" {
 }
 
 group "default" {
-  targets = ["base", "wan2.2-t2v-14b"]
+  targets = ["base", "wan22-t2v-14b"]
   //targets = [
   //  "base",
   //  "sdxl", "sd3",
@@ -149,7 +149,7 @@ target "flux1-dev-fp8" {
 # NEW: Wan 2.2 model targets
 # ----------------------------
 
-target "wan2.2-5b" {
+target "wan22-5b" {
   context = "."
   dockerfile = "Dockerfile"
   target = "final"
@@ -159,14 +159,14 @@ target "wan2.2-5b" {
     CUDA_VERSION_FOR_COMFY = "${CUDA_VERSION_FOR_COMFY}"
     ENABLE_PYTORCH_UPGRADE = "${ENABLE_PYTORCH_UPGRADE}"
     PYTORCH_INDEX_URL = "${PYTORCH_INDEX_URL}"
-    MODEL_TYPE = "wan2.2-5b"
+    MODEL_TYPE = "wan2.2-5b"                      # keep MODEL_TYPE with dot (matches Dockerfile)
     HUGGINGFACE_ACCESS_TOKEN = "${HUGGINGFACE_ACCESS_TOKEN}"
   }
-  tags = ["${DOCKERHUB_REPO}/${DOCKERHUB_IMG}:${RELEASE_VERSION}-wan2.2-5b"]
+  tags = ["${DOCKERHUB_REPO}/${DOCKERHUB_IMG}:${RELEASE_VERSION}-wan2.2-5b"]  # dots OK in tags
   inherits = ["base"]
 }
 
-target "wan2.2-t2v-14b" {
+target "wan22-t2v-14b" {
   context = "."
   dockerfile = "Dockerfile"
   target = "final"
@@ -183,7 +183,7 @@ target "wan2.2-t2v-14b" {
   inherits = ["base"]
 }
 
-target "wan2.2-i2v-14b" {
+target "wan22-i2v-14b" {
   context = "."
   dockerfile = "Dockerfile"
   target = "final"
