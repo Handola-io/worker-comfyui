@@ -96,15 +96,18 @@ FROM base AS downloader
 
 ARG HUGGINGFACE_ACCESS_TOKEN
 # Set default model type if none is provided
-ARG MODEL_TYPE=flux1-dev-fp8
+ARG MODEL_TYPE=wan2.2-t2v-14b
 
 # Change working directory to ComfyUI
 WORKDIR /comfyui
 
 # Create necessary directories upfront
-RUN mkdir -p models/checkpoints models/vae models/unet models/clip
+# (added diffusion_models and text_encoders for Wan 2.2)
+RUN mkdir -p models/checkpoints models/vae models/unet models/clip models/diffusion_models models/text_encoders
 
-# Download checkpoints/vae/unet/clip models to include in image based on model type
+# -------------------------
+# Existing model examples
+# -------------------------
 RUN if [ "$MODEL_TYPE" = "sdxl" ]; then \
       wget -q -O models/checkpoints/sd_xl_base_1.0.safetensors https://huggingface.co/stabilityai/stable-diffusion-xl-base-1.0/resolve/main/sd_xl_base_1.0.safetensors && \
       wget -q -O models/vae/sdxl_vae.safetensors https://huggingface.co/stabilityai/sdxl-vae/resolve/main/sdxl_vae.safetensors && \
@@ -131,6 +134,48 @@ RUN if [ "$MODEL_TYPE" = "flux1-dev" ]; then \
 
 RUN if [ "$MODEL_TYPE" = "flux1-dev-fp8" ]; then \
       wget -q -O models/checkpoints/flux1-dev-fp8.safetensors https://huggingface.co/Comfy-Org/flux1-dev/resolve/main/flux1-dev-fp8.safetensors; \
+    fi
+
+# -------------------------
+# NEW: Wan 2.2 model types
+# Docs & folders:
+# - text encoder -> models/text_encoders/
+# - VAE          -> models/vae/
+# - diffusion    -> models/diffusion_models/
+# -------------------------
+
+# Wan 2.2 (5B, TI2V): requires UMT5 text encoder + Wan2.2 VAE + single TI2V 5B diffusion file
+RUN if [ "$MODEL_TYPE" = "wan2.2-5b" ]; then \
+      wget -q -O models/text_encoders/umt5_xxl_fp8_e4m3fn_scaled.safetensors \
+        https://huggingface.co/Comfy-Org/Wan_2.2_ComfyUI_Repackaged/resolve/main/split_files/text_encoders/umt5_xxl_fp8_e4m3fn_scaled.safetensors && \
+      wget -q -O models/vae/wan2.2_vae.safetensors \
+        https://huggingface.co/Comfy-Org/Wan_2.2_ComfyUI_Repackaged/resolve/main/split_files/vae/wan2.2_vae.safetensors && \
+      wget -q -O models/diffusion_models/wan2.2_ti2v_5B_fp16.safetensors \
+        https://huggingface.co/Comfy-Org/Wan_2.2_ComfyUI_Repackaged/resolve/main/split_files/diffusion_models/wan2.2_ti2v_5B_fp16.safetensors; \
+    fi
+
+# Wan 2.2 (14B, T2V): requires UMT5 text encoder + Wan 2.1 VAE + BOTH high/low-noise T2V FP8 diffusion files
+RUN if [ "$MODEL_TYPE" = "wan2.2-t2v-14b" ]; then \
+      wget -q -O models/text_encoders/umt5_xxl_fp8_e4m3fn_scaled.safetensors \
+        https://huggingface.co/Comfy-Org/Wan_2.2_ComfyUI_Repackaged/resolve/main/split_files/text_encoders/umt5_xxl_fp8_e4m3fn_scaled.safetensors && \
+      wget -q -O models/vae/wan_2.1_vae.safetensors \
+        https://huggingface.co/Comfy-Org/Wan_2.2_ComfyUI_Repackaged/resolve/main/split_files/vae/wan_2.1_vae.safetensors && \
+      wget -q -O models/diffusion_models/wan2.2_t2v_high_noise_14B_fp8_scaled.safetensors \
+        https://huggingface.co/Comfy-Org/Wan_2.2_ComfyUI_Repackaged/resolve/main/split_files/diffusion_models/wan2.2_t2v_high_noise_14B_fp8_scaled.safetensors && \
+      wget -q -O models/diffusion_models/wan2.2_t2v_low_noise_14B_fp8_scaled.safetensors \
+        https://huggingface.co/Comfy-Org/Wan_2.2_ComfyUI_Repackaged/resolve/main/split_files/diffusion_models/wan2.2_t2v_low_noise_14B_fp8_scaled.safetensors; \
+    fi
+
+# Wan 2.2 (14B, I2V): requires UMT5 text encoder + Wan 2.1 VAE + BOTH high/low-noise I2V FP8 diffusion files
+RUN if [ "$MODEL_TYPE" = "wan2.2-i2v-14b" ]; then \
+      wget -q -O models/text_encoders/umt5_xxl_fp8_e4m3fn_scaled.safetensors \
+        https://huggingface.co/Comfy-Org/Wan_2.2_ComfyUI_Repackaged/resolve/main/split_files/text_encoders/umt5_xxl_fp8_e4m3fn_scaled.safetensors && \
+      wget -q -O models/vae/wan_2.1_vae.safetensors \
+        https://huggingface.co/Comfy-Org/Wan_2.2_ComfyUI_Repackaged/resolve/main/split_files/vae/wan_2.1_vae.safetensors && \
+      wget -q -O models/diffusion_models/wan2.2_i2v_high_noise_14B_fp8_scaled.safetensors \
+        https://huggingface.co/Comfy-Org/Wan_2.2_ComfyUI_Repackaged/resolve/main/split_files/diffusion_models/wan2.2_i2v_high_noise_14B_fp8_scaled.safetensors && \
+      wget -q -O models/diffusion_models/wan2.2_i2v_low_noise_14B_fp8_scaled.safetensors \
+        https://huggingface.co/Comfy-Org/Wan_2.2_ComfyUI_Repackaged/resolve/main/split_files/diffusion_models/wan2.2_i2v_low_noise_14B_fp8_scaled.safetensors; \
     fi
 
 # Stage 3: Final image
