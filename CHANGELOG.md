@@ -1,3 +1,10 @@
+# [1.1.0](https://github.com/Handola-io/worker-comfyui/compare/1.0.0...1.1.0) (2025-08-25)
+
+
+### Features
+
+* add support for Wan 2.2 model types in Dockerfile and docker-bake.hcl ([1ece71e](https://github.com/Handola-io/worker-comfyui/commit/1ece71edf0e7a01c253b0ae0574b78d93ce797fe))
+
 # 1.0.0 (2025-08-25)
 
 
