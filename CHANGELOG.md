@@ -1,3 +1,10 @@
+## [1.1.1](https://github.com/Handola-io/worker-comfyui/compare/1.1.0...1.1.1) (2025-08-25)
+
+
+### Bug Fixes
+
+* correct Wan 2.2 model target names in docker-bake.hcl ([965f158](https://github.com/Handola-io/worker-comfyui/commit/965f158880d264437ae597d4c17d5c736381e979))
+
 # [1.1.0](https://github.com/Handola-io/worker-comfyui/compare/1.0.0...1.1.0) (2025-08-25)
 
 
