@@ -1,3 +1,10 @@
+## [1.1.5](https://github.com/Handola-io/worker-comfyui/compare/1.1.4...1.1.5) (2025-08-26)
+
+
+### Bug Fixes
+
+* Remove highvram option from launch arguments ([c5ef03c](https://github.com/Handola-io/worker-comfyui/commit/c5ef03cb7e76d69697c7ee0a6337aaed4adca697))
+
 ## [1.1.4](https://github.com/Handola-io/worker-comfyui/compare/1.1.3...1.1.4) (2025-08-26)
 
 
