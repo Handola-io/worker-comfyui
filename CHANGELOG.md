@@ -1,3 +1,10 @@
+## [1.1.3](https://github.com/Handola-io/worker-comfyui/compare/1.1.2...1.1.3) (2025-08-26)
+
+
+### Bug Fixes
+
+* Add paths for text encoders and diffusion models ([e4a6ef0](https://github.com/Handola-io/worker-comfyui/commit/e4a6ef0fb7afe461972b1dbdf7d606f69fd18c22))
+
 ## [1.1.2](https://github.com/Handola-io/worker-comfyui/compare/1.1.1...1.1.2) (2025-08-26)
 
 
