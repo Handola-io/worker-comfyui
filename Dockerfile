@@ -103,7 +103,7 @@ WORKDIR /comfyui
 
 # Create necessary directories upfront
 # (added diffusion_models and text_encoders for Wan 2.2)
-RUN mkdir -p models/checkpoints models/vae models/unet models/clip models/diffusion_models models/text_encoders
+RUN mkdir -p models/checkpoints models/vae models/unet models/clip models/diffusion_models models/text_encoders models/loras
 
 # -------------------------
 # Existing model examples
@@ -163,7 +163,11 @@ RUN if [ "$MODEL_TYPE" = "wan2.2-t2v-14b" ]; then \
       wget -q -O models/diffusion_models/wan2.2_t2v_high_noise_14B_fp8_scaled.safetensors \
         https://huggingface.co/Comfy-Org/Wan_2.2_ComfyUI_Repackaged/resolve/main/split_files/diffusion_models/wan2.2_t2v_high_noise_14B_fp8_scaled.safetensors && \
       wget -q -O models/diffusion_models/wan2.2_t2v_low_noise_14B_fp8_scaled.safetensors \
-        https://huggingface.co/Comfy-Org/Wan_2.2_ComfyUI_Repackaged/resolve/main/split_files/diffusion_models/wan2.2_t2v_low_noise_14B_fp8_scaled.safetensors; \
+        https://huggingface.co/Comfy-Org/Wan_2.2_ComfyUI_Repackaged/resolve/main/split_files/diffusion_models/wan2.2_t2v_low_noise_14B_fp8_scaled.safetensors; && \
+      wget -q -O models/loras/wan2.2_t2v_lightx2v_4steps_lora_v1.1_high_noise.safetensors \
+        https://huggingface.co/Comfy-Org/Wan_2.2_ComfyUI_Repackaged/resolve/main/split_files/loras/wan2.2_t2v_lightx2v_4steps_lora_v1.1_high_noise.safetensors && \
+      wget -q -O models/loras/wan2.2_t2v_lightx2v_4steps_lora_v1.1_low_noise.safetensors \
+        https://huggingface.co/Comfy-Org/Wan_2.2_ComfyUI_Repackaged/resolve/main/split_files/loras/wan2.2_t2v_lightx2v_4steps_lora_v1.1_low_noise.safetensors; \
     fi
 
 # Wan 2.2 (14B, I2V): requires UMT5 text encoder + Wan 2.1 VAE + BOTH high/low-noise I2V FP8 diffusion files
