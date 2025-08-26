@@ -12,7 +12,7 @@ echo "worker-comfyui: Starting ComfyUI"
 # Allow operators to tweak verbosity; default is DEBUG.
 : "${COMFY_LOG_LEVEL:=DEBUG}"
 # Launch args for comfy ui.
-: "${COMFY_EXTRA_LAUNCH_ARGS:=--highvram --gpu-only}"
+: "${COMFY_EXTRA_LAUNCH_ARGS:=--gpu-only}"
 
 # Serve the API and don't shutdown the container
 if [ "$SERVE_API_LOCALLY" == "true" ]; then
