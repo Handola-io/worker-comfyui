@@ -1,3 +1,10 @@
+## [1.1.2](https://github.com/Handola-io/worker-comfyui/compare/1.1.1...1.1.2) (2025-08-26)
+
+
+### Bug Fixes
+
+* **docker:** fix wget command for low-noise model download ([46d0eb6](https://github.com/Handola-io/worker-comfyui/commit/46d0eb662e390add9fa6a72e7444dd77affc3ed8))
+
 ## [1.1.1](https://github.com/Handola-io/worker-comfyui/compare/1.1.0...1.1.1) (2025-08-25)
 
 
