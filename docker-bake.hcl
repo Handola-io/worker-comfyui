@@ -36,7 +36,7 @@ variable "HUGGINGFACE_ACCESS_TOKEN" {
 }
 
 group "default" {
-  targets = ["base", "wan22-t2v-14b"]
+  targets = ["base"]
   //targets = [
   //  "base",
   //  "sdxl", "sd3",
