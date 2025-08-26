@@ -1,3 +1,10 @@
+## [1.1.4](https://github.com/Handola-io/worker-comfyui/compare/1.1.3...1.1.4) (2025-08-26)
+
+
+### Bug Fixes
+
+* extra launch arguments for ComfyUI ([a4a5584](https://github.com/Handola-io/worker-comfyui/commit/a4a55840de3e4bcf740c713161cc96bb0926584c))
+
 ## [1.1.3](https://github.com/Handola-io/worker-comfyui/compare/1.1.2...1.1.3) (2025-08-26)
 
 
